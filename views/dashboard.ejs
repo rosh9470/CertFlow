@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - CertFlow</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container mt-4">
+    <!-- Top header with title and Upload button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>My Documents</h1>
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        <i class="bi bi-upload me-1"></i> Upload Document
+      </button>
+    </div>
+    
+    <!-- Documents Table -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">My Documents</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Uploaded</th>
+                <th>Status</th>
+                <th>Admin Note</th>
+                <th>Actions</th> <!-- Now includes View and Download if applicable -->
+              </tr>
+            </thead>
+            <tbody>
+              <% if (documents.length === 0) { %>
+                <tr>
+                  <td colspan="5" class="text-center py-4">No documents uploaded yet</td>
+                </tr>
+              <% } else { %>
+                <% documents.forEach(doc => { %>
+                  <tr>
+                    <td><%= doc.title %></td>
+                    <td><%= doc.description %></td>
+                    <td><%= new Date(doc.uploadDate).toLocaleDateString() %></td>
+                    <td>
+                      <span class="badge <%= doc.status === 'approved' ? 'bg-success' : (doc.status === 'rejected' ? 'bg-danger' : doc.status==='needs_info' ? 'bg-info' : 'bg-warning') %>">
+                        <%= doc.status.charAt(0).toUpperCase() + doc.status.slice(1) %>
+                      </span>
+                    </td>
+                    <!-- show admin's note if they requested more info -->
+                    <td>
+                      <% if (doc.status === 'needs_info') { %>
+                        <div class="text-danger"><strong><%= doc.adminNotes %></strong></div>
+                      <% } %>
+                    </td>
+                    <td class="d-flex flex-wrap gap-1">
+                      <% if (doc.status === 'needs_info') { %>
+                        <form id="additional-form-<%= doc.id %>" class="d-flex align-items-center" enctype="multipart/form-data">
+                          <input type="file" name="file" class="form-control form-control-sm me-1" required>
+                          <button class="btn btn-sm btn-primary">Resubmit</button>
+                        </form>
+                      <% } else { %>
+                        <a href="<%= doc.fileUrl %>" target="_blank" class="btn btn-sm btn-secondary">View</a>
+                        <% if (doc.certificateUrl) { %>
+                          <a href="/documents/<%= doc.id %>/certificate" target="_blank" class="btn btn-sm btn-info ms-2">
+                            Download Certificate
+                          </a>
+                        <% } %>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Upload Document Modal -->
+  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadModalLabel">Upload Document</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="upload-error" class="alert alert-danger d-none"></div>
+          <form id="upload-form" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="title" class="form-label">Document Title</label>
+              <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="file" class="form-label">Select Document (PDF, JPEG, PNG)</label>
+              <input type="file" class="form-control" id="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="upload-button">Upload</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Document Modal -->
+<div class="modal fade" id="additionalModal" tabindex="-1" aria-labelledby="additionalModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="additional-form" class="modal-content" enctype="multipart/form-data">
+      <div class="modal-header">
+        <h5 class="modal-title" id="additionalModalLabel">Upload Additional Document</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="additionalUploadError" class="alert alert-danger d-none"></div>
+        <div class="mb-3">
+          <label for="additional-file" class="form-label">Select File</label>
+          <input type="file" id="additional-file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  
+  <%- include('partials/footer') %>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/main.js"></script>
+  <script>
+    // Upload button logic for document submission
+    document.getElementById('upload-button').addEventListener('click', async () => {
+      const errorElement = document.getElementById('upload-error');
+      errorElement.classList.add('d-none');
+      const formData = new FormData(document.getElementById('upload-form'));
+      try {
+        const response = await fetch('/documents/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+          // Close modal and reload dashboard to show the new document
+          const modal = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
+          modal.hide();
+          window.location.reload();
+        } else {
+          errorElement.textContent = data.message;
+          errorElement.classList.remove('d-none');
+        }
+      } catch (error) {
+        errorElement.textContent = 'An error occurred while uploading the document.';
+        errorElement.classList.remove('d-none');
+      }
+    });
+
+        // Attach resubmit handlers
+    <% documents.forEach(doc => { if (doc.status === 'needs_info') { %>
+      document.getElementById('additional-form-<%=doc.id%>').addEventListener('submit', async e => {
+        e.preventDefault();
+        const form = e.target;
+        const fd = new FormData(form);
+        try {
+          const res = await fetch(`/documents/<%=doc.id%>/additional`, {
+            method: 'POST',
+            body: fd
+          });
+          const jsn = await res.json();
+          if (!jsn.success) throw new Error(jsn.message);
+          window.location.reload();
+        } catch (err) {
+          alert('Upload failed: ' + err.message);
+        }
+      });
+    <% }}); %>
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<header class="bg-primary text-white">
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/">CertFlow</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <!-- Always visible link -->
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          
+          <!-- Dashboard link should be visible only for non-admin users -->
+          <li class="nav-item user-dashboard-only d-none">
+            <a class="nav-link" href="/dashboard">Dashboard</a>
+          </li>
+          
+          <!-- Admin link should only be visible for admin users -->
+          <li class="nav-item admin-only d-none">
+            <a class="nav-link" href="/admin">Admin</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <!-- Visible when no one is logged in -->
+          <li class="nav-item user-logged-out"><a class="nav-link" href="/login">Login</a></li>
+          <li class="nav-item user-logged-out"><a class="nav-link" href="/register">Register</a></li>
+          
+          <!-- Visible when someone is logged in -->
+          <li class="nav-item user-logged-in d-none"><a class="nav-link" href="#" id="logout-btn">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Retrieve the user from localStorage (make sure you store the user during login)
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    
+    if (user) {
+      // Show elements meant for logged in users and hide those for logged out users.
+      document.querySelectorAll('.user-logged-in').forEach(el => el.classList.remove('d-none'));
+      document.querySelectorAll('.user-logged-out').forEach(el => el.classList.add('d-none'));
+      
+      // Role-based control:
+      if (user.role === 'admin') {
+        // For admins: show admin-only links and hide the dashboard link.
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('d-none'));
+        document.querySelectorAll('.user-dashboard-only').forEach(el => el.classList.add('d-none'));
+      } else {
+        // For normal users: show the dashboard link and hide the admin-only links.
+        document.querySelectorAll('.user-dashboard-only').forEach(el => el.classList.remove('d-none'));
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.add('d-none'));
+      }
+    } else {
+      // When no user is logged in, hide all logged in elements and show logged out elements.
+      document.querySelectorAll('.user-logged-in').forEach(el => el.classList.add('d-none'));
+      document.querySelectorAll('.user-logged-out').forEach(el => el.classList.remove('d-none'));
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.add('d-none'));
+    }
+  });
+</script>
