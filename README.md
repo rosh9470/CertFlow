@@ -74,7 +74,31 @@ Build CertFlow from source and install dependencies:
    cd CertFlow
    ```
 
-3. Install the dependencies:
+3. Create the database configuration file:
+
+   Copy the example file and update it with your actual database credentials:
+
+   ```bash
+   cp db.example.js db.js
+   ```
+
+   Then open `db.js` in your editor and update the values as needed:
+
+   ```js
+   // db.js
+   module.exports = {
+     user: 'your_db_username',
+     password: 'your_db_password',
+     server: 'your_db_host',
+     database: 'your_database_name',
+     options: {
+       encrypt: true,
+       trustServerCertificate: true
+     }
+   };
+   ```
+
+4. Install the dependencies:
 
    ```bash
    npm install
